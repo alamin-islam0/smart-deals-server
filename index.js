@@ -29,9 +29,18 @@ async function run() {
 
     const db = client.db('smart_db');
     const productsCollection = db.collection('products');
+    const bidsCollection =db.collection('bids')
     //Get
     app.get('/products', async (req, res) =>{
-        const cursor = productsCollection.find();
+        console.log(req.query)
+        const email = req.query.email;
+        const query ={}
+        if(email){
+            query.email = email;
+
+        }
+
+        const cursor = productsCollection.find(query);
         const result = await cursor.toArray();
         res.send(result);
     })
@@ -42,6 +51,7 @@ async function run() {
         const result = await productsCollection.findOne(query);
         res.send(result);
     })
+    
     //Post
     app.post('/products', async (req, res) =>{
         const newProduct = req.body
@@ -68,6 +78,18 @@ async function run() {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)}
         const result = await productsCollection.deleteOne(query);
+        res.send(result)
+    })
+    //Bids related api
+    app.get('/bids', async(req, res) =>{
+        const email = req.query.email;
+        const query = {};
+        if(email){
+            query.buyer_email = email;
+        }
+
+        const cursor = bidsCollection.find(query);
+        const result = await cursor.toArray();
         res.send(result)
     })
 
