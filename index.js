@@ -92,6 +92,26 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result)
     })
+    //Bids Get
+    app.post('/bids', async(req, res) =>{
+        const newBid = req.body;
+        const result = await bidsCollection.insertOne(newBid);
+        res.send(result)
+    })
+    //Bids Delete
+    app.delete('/bids/:id', async (req, res) =>{
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await bidsCollection.deleteOne(query);
+        res.send(result)
+    })
+    //Find Bids
+    app.get('/bids/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await bidsCollection.findOne(query);
+        res.send(result);
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
