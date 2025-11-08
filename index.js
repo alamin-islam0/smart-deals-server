@@ -30,6 +30,22 @@ async function run() {
     const db = client.db('smart_db');
     const productsCollection = db.collection('products');
     const bidsCollection =db.collection('bids')
+    const usersCollection = db.collection('users')
+    //Users Api
+    app.post ('/users', async (req, res) =>{
+        const newUser = req.body;
+        const email = req.body.email;
+        const query = {email: email}
+        const existingUser = await usersCollection.findOne(query)
+        if(existingUser) {
+            res.send({Message: 'User already exists'})
+        }
+        else{
+        const result = await usersCollection.insertOne(newUser);
+        res.send(result);
+        }        
+    })
+    // Products Api
     //Get
     app.get('/products', async (req, res) =>{
         console.log(req.query)
@@ -44,14 +60,20 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result);
     })
+    //Latest Products
+    app.get('/latest-products', async(req, res) =>{
+        const cursor = productsCollection.find().sort({created_at: -1}).limit(6);
+        const result = await cursor.toArray();
+        res.send(result);
+    })
     //Find
     app.get('/products/:id', async (req, res) => {
         const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
+        const query = { _id: ObjectId.isValid(id) ? new ObjectId(id) : id };
         const result = await productsCollection.findOne(query);
         res.send(result);
     })
-    
+
     //Post
     app.post('/products', async (req, res) =>{
         const newProduct = req.body
@@ -92,6 +114,15 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result)
     })
+    //Products Bids:
+    app.get('/products/bids/:ProductId', async(req, res) => {
+        const ProductId = req.params.ProductId;
+        const query = {product: ProductId}
+        const cursor = bidsCollection.find(query).sort({bid_price: -1})
+        const result = await cursor.toArray();
+        res.send(result)
+    })
+
     //Bids Get
     app.post('/bids', async(req, res) =>{
         const newBid = req.body;
