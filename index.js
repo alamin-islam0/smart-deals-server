@@ -1,6 +1,6 @@
-const express = require('express');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const cors = require('cors');
+const express = require("express");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -8,7 +8,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const uri = "mongodb+srv://smartDbUser:U27pDlUoMBT21gGM@mypanel.2nu9rfb.mongodb.net/?appName=MyPanel";
+const uri =
+  "mongodb+srv://smartDbUser:U27pDlUoMBT21gGM@mypanel.2nu9rfb.mongodb.net/?appName=MyPanel";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -16,141 +17,163 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
-app.get('/', (req, res) =>{
-    res.send('Smart server is running')
-})
+app.get("/", (req, res) => {
+  res.send("Smart server is running");
+});
 
 async function run() {
   try {
     await client.connect();
 
-    const db = client.db('smart_db');
-    const productsCollection = db.collection('products');
-    const bidsCollection =db.collection('bids')
-    const usersCollection = db.collection('users')
+    const db = client.db("smart_db");
+    const productsCollection = db.collection("products");
+    const bidsCollection = db.collection("bids");
+    const usersCollection = db.collection("users");
     //Users Api
-    app.post ('/users', async (req, res) =>{
-        const newUser = req.body;
-        const email = req.body.email;
-        const query = {email: email}
-        const existingUser = await usersCollection.findOne(query)
-        if(existingUser) {
-            res.send({Message: 'User already exists'})
-        }
-        else{
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const email = req.body.email;
+      const query = { email: email };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        res.send({ Message: "User already exists" });
+      } else {
         const result = await usersCollection.insertOne(newUser);
         res.send(result);
-        }        
-    })
+      }
+    });
     // Products Api
     //Get
-    app.get('/products', async (req, res) =>{
-        console.log(req.query)
-        const email = req.query.email;
-        const query ={}
-        if(email){
-            query.email = email;
+    app.get("/products", async (req, res) => {
+      console.log(req.query);
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
 
-        }
-
-        const cursor = productsCollection.find(query);
-        const result = await cursor.toArray();
-        res.send(result);
-    })
+      const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     //Latest Products
-    app.get('/latest-products', async(req, res) =>{
-        const cursor = productsCollection.find().sort({created_at: -1}).limit(6);
-        const result = await cursor.toArray();
-        res.send(result);
-    })
+    app.get("/latest-products", async (req, res) => {
+      const cursor = productsCollection
+        .find()
+        .sort({ created_at: -1 })
+        .limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     //Find
-    app.get('/products/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: ObjectId.isValid(id) ? new ObjectId(id) : id };
-        const result = await productsCollection.findOne(query);
-        res.send(result);
-    })
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId.isValid(id) ? new ObjectId(id) : id };
+      const result = await productsCollection.findOne(query);
+      res.send(result);
+    });
 
     //Post
-    app.post('/products', async (req, res) =>{
-        const newProduct = req.body
-        const result = await productsCollection.insertOne(newProduct)
-        res.send(result);
-    })
+    app.post("/products", async (req, res) => {
+      const newProduct = req.body;
+      const result = await productsCollection.insertOne(newProduct);
+      res.send(result);
+    });
     //Patch
-    app.patch('/products/:id', async (req, res) =>{
-        const id = req.params.id;
-        const updatedProduct = req.body;
-        const query = {_id: new ObjectId(id)}
-        const update = {
-            $set: {
-                name: updatedProduct.name,
-                price: updatedProduct.price,
-            }
-        }
+    app.patch("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          name: updatedProduct.name,
+          price: updatedProduct.price,
+        },
+      };
 
-        const result = await productsCollection.updateOne(query, update);
-        res.send(result)
-    })
+      const result = await productsCollection.updateOne(query, update);
+      res.send(result);
+    });
     //Delete
-    app.delete('/products/:id', async (req, res) =>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await productsCollection.deleteOne(query);
-        res.send(result)
-    })
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
     //Bids related api
-    app.get('/bids', async(req, res) =>{
-        const email = req.query.email;
-        const query = {};
-        if(email){
-            query.buyer_email = email;
-        }
+    app.get("/bids", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.buyer_email = email;
+      }
 
-        const cursor = bidsCollection.find(query);
-        const result = await cursor.toArray();
-        res.send(result)
-    })
-    //Products Bids:
-    app.get('/products/bids/:ProductId', async(req, res) => {
-        const ProductId = req.params.ProductId;
-        const query = {product: ProductId}
-        const cursor = bidsCollection.find(query).sort({bid_price: -1})
-        const result = await cursor.toArray();
-        res.send(result)
-    })
+      const cursor = bidsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    //Products Bids with Product Info:
+    app.get("/products/bids/:ProductId", async (req, res) => {
+      const ProductId = req.params.ProductId;
+
+      try {
+        const bidsWithProduct = await bidsCollection
+          .aggregate([
+            { $match: { product: ProductId } },
+            {
+              $lookup: {
+                from: "products", 
+                localField: "product", 
+                foreignField: "_id", 
+                as: "product_info",  
+              },
+            },
+            { $unwind: "$product_info" }, 
+            { $sort: { bid_price: -1 } },
+          ])
+          .toArray();
+
+        res.send(bidsWithProduct);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: "Something went wrong" });
+      }
+    });
 
     //Bids Get
-    app.post('/bids', async(req, res) =>{
-        const newBid = req.body;
-        const result = await bidsCollection.insertOne(newBid);
-        res.send(result)
-    })
+    app.post("/bids", async (req, res) => {
+      const newBid = req.body;
+      const result = await bidsCollection.insertOne(newBid);
+      res.send(result);
+    });
     //Bids Delete
-    app.delete('/bids/:id', async (req, res) =>{
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await bidsCollection.deleteOne(query);
-        res.send(result)
-    })
+    app.delete("/bids/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bidsCollection.deleteOne(query);
+      res.send(result);
+    });
     //Find Bids
-    app.get('/bids/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await bidsCollection.findOne(query);
-        res.send(result);
-    })
+    app.get("/bids/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bidsCollection.findOne(query);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
   }
 }
 run().catch(console.dir);
 
-app.listen(port, () =>{
-    console.log(`Smart server is running on port: ${port}`)
-})
+app.listen(port, () => {
+  console.log(`Smart server is running on port: ${port}`);
+});
