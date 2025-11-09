@@ -2,6 +2,7 @@ const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 const app = express();
+require('dotenv').config()
 const port = process.env.PORT || 3000;
 
 //Middleware
@@ -9,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 const uri =
-  "mongodb+srv://smartDbUser:U27pDlUoMBT21gGM@mypanel.2nu9rfb.mongodb.net/?appName=MyPanel";
+  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@mypanel.2nu9rfb.mongodb.net/?appName=MyPanel`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -126,13 +127,13 @@ async function run() {
             { $match: { product: ProductId } },
             {
               $lookup: {
-                from: "products", 
-                localField: "product", 
-                foreignField: "_id", 
-                as: "product_info",  
+                from: "products",
+                localField: "product",
+                foreignField: "_id",
+                as: "product_info",
               },
             },
-            { $unwind: "$product_info" }, 
+            { $unwind: "$product_info" },
             { $sort: { bid_price: -1 } },
           ])
           .toArray();
@@ -143,7 +144,19 @@ async function run() {
         res.status(500).send({ error: "Something went wrong" });
       }
     });
-
+    //My Bids:
+    // GET /bids?email=someone@example.com
+    app.get("/bids", async (req, res) => {
+      try {
+        const { email } = req.query; // read from querystring
+        const query = email ? { buyer_email: email } : {};
+        const result = await bidsCollection.find(query).toArray();
+        return res.json(result); // ensure JSON
+      } catch (err) {
+        console.error("GET /bids failed:", err);
+        return res.status(500).json({ message: "Failed to fetch bids" });
+      }
+    });
     //Bids Get
     app.post("/bids", async (req, res) => {
       const newBid = req.body;
